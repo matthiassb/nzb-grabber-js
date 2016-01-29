@@ -3,7 +3,6 @@ net         = require 'net'
 log         = require 'node-logging'
 stream      = require 'stream'
 async       = require 'async'
-buffertools = require 'buffertools'
 
 # Just a counter of workers created.
 id = 0
@@ -38,7 +37,7 @@ class NNTPWorker
                 if item = q.shift()
                     if typeof item isnt 'function'
                         throw 'Callback is not a function' # internal
-                    
+
                     item self.error, code, res
 
             # Push a handler to the stack.
@@ -61,7 +60,7 @@ class NNTPWorker
             async.waterfall [ (cb) ->
                 self.mode = 'MESSAGE'
                 self.sendCommand 'AUTHINFO USER ' + self.opts.user, 381, cb
-            
+
             # Send password.
             , (code, res, cb) ->
                 self.mode = 'MESSAGE'
@@ -133,7 +132,7 @@ class NNTPWorker
 
         # Make the request (client will be instantiated by now).
         @client.write command + '\r\n'
-    
+
     # What do you do with data?
     # message = [code] \r\n
     # article = [headers] + \r\n\r\n + [body] + \r\n.\r\n
@@ -141,7 +140,7 @@ class NNTPWorker
         # Get code.
         getCode = ->
             buffer.toString 'ascii', 0, 3
-        
+
         # Does the article end now?
         isArticleEnd = ->
             length = buffer.length
@@ -150,7 +149,8 @@ class NNTPWorker
         # Remove headers and the trailing dot on input.
         removeHeaders = (input) ->
             length = input.length
-            input.slice buffertools.indexOf(input, '\r\n\r\n') + 4, length - 3
+            input.slice input.indexOf('\r\n\r\n') + 4, length - 3
+
 
         # What mode are we in?
         switch @mode
@@ -161,7 +161,7 @@ class NNTPWorker
                 res = buffer.slice 0, length - 2 # sans trailing newline
                 log.dbg '#' + @id + ': << ' + res.toString() # log it too
                 @callbacks.call getCode(), res
-            
+
             # Beginning of an article.
             when 'ARTICLE_BEGIN'
                 # Get the code.
@@ -173,7 +173,7 @@ class NNTPWorker
                     # Early bath for him.
                     @callbacks.call @code, null
                     return
-                
+
                 # Does the article end now?
                 if isArticleEnd()
                     @state = 'READY' # ready again

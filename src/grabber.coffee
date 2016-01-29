@@ -4,7 +4,7 @@ log         = require 'node-logging'
 NNTPWorker  = require './nntp.coffee'
 nzb         = require './nzb.coffee'
 yenc        = require './yenc.coffee'
-buffertools = require 'buffertools'
+
 
 class NzbGrabber
 
@@ -90,7 +90,7 @@ class NzbGrabber
                             log.inf chunk.subject.bold + ' (' + (i + 1) + '/' + file.length + ') received'
                             # yEnc decode (sync, no complaints, errors fixed by par2).
                             [ filename, decoded ] = yenc buffer
-                        
+
                         # Push to cache at a position either way.
                         cache[i] = decoded
                         chunks -= 1 # one less to do
@@ -113,12 +113,12 @@ class NzbGrabber
                                 j += 1
                                 # Continue if something was here (still unbroken chain).
                                 continue if typeof(item) is 'boolean'
-                                
+
                                 # Logging of the chunk returned.
                                 seg = ''
                                 if file.length isnt 1 then seg = ' (' + j + '/' + file.length + ')'
                                 log.inf 'File ' + filename.bold + seg + ' done'
-                                
+
                                 # Done = no more chunks cache and no more files.
                                 cb null, filename, item, !(todo -= 1)
                                 # Say this part was already returned.
